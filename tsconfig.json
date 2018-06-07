@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "baseUrl": "..",
+        "types": ["react", "react-native", "jest"],
+        "target": "es2015",
+        "module": "es2015",
+        "moduleResolution": "node",
+        "jsx": "react",
+        "outDir": "dist",
+        "rootDir": "src",
+        "allowSyntheticDefaultImports": true,
+        "declaration": false,
+        "noImplicitAny": false,
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "allowJs": false,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "lib": [
+            "es2015"
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+    ],
+    "exclude": [
+        "dist",
+        "android",
+        "ios",
+        "build",
+        "node_modules"
+    ],
+    "compileOnSave": false
+}

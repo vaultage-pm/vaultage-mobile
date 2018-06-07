@@ -1,0 +1,44 @@
+{
+  "name": "vaultage",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "npm run build && concurrently -r 'npm run watch' 'react-native run-android --config=../../../../rn-cli.config.js'",
+    "build": "npm run clean && npm run tsc --",
+    "clean": "rimraf dist",
+    "ios": "npm run build && concurrently -r 'npm run watch' 'react-native run-ios --config=../../../../rn-cli.config.js'",
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest",
+    "tsc": "tsc",
+    "watch": "npm run build -- -w"
+  },
+  "dependencies": {
+    "@types/color": "^3.0.0",
+    "@types/react-redux": "^6.0.2",
+    "color": "^3.0.0",
+    "react": "16.3.1",
+    "react-native": "0.55.4",
+    "react-navigation": "^2.2.3",
+    "vaultage-client": "^5.1.0-dev.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.0.0",
+    "@types/react": "^16.3.16",
+    "@types/react-native": "^0.55.17",
+    "@types/react-navigation": "^2.0.3",
+    "babel-jest": "23.0.1",
+    "babel-preset-react-native": "4.0.0",
+    "concurrently": "^3.5.1",
+    "jest": "23.1.0",
+    "react-redux": "^5.0.7",
+    "react-test-renderer": "16.3.1",
+    "redux": "^4.0.0",
+    "remote-redux-devtools": "^0.5.12",
+    "rimraf": "^2.6.2",
+    "tslib": "^1.9.2",
+    "typescript": "^2.9.1"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
