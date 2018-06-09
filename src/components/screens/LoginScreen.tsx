@@ -11,9 +11,9 @@ import style, { HIGHLIGHT, PRIMARY } from '../../style';
 
 const mapStateToProps = (state: State) => {
     return {
-        loading: state.loginLoading,
-        error: state.error,
-        creds: state.creds
+        loading: state.get('loginLoading'),
+        error: state.get('error'),
+        creds: state.get('creds')
     };
 };
 
@@ -65,7 +65,7 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
                     autoFocus={true}
                     autoCorrect={false}
                     onChangeText={(username) => this.props.updateCreds({username})}
-                    value={this.props.creds.username}
+                    value={this.props.creds.get('username')}
                 />
                 <TextInput  
                     style={style.bigInput}
@@ -74,7 +74,7 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
                     autoCapitalize='none'
                     autoCorrect={false}
                     onChangeText={(password) => this.props.updateCreds({password})}
-                    value={this.props.creds.password}
+                    value={this.props.creds.get('password')}
                 />
                 <TextInput
                     style={style.bigInput}
@@ -82,7 +82,7 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
                     autoCapitalize='none'
                     autoCorrect={false}
                     onChangeText={(host) => this.props.updateCreds({host})}
-                    value={this.props.creds.host}
+                    value={this.props.creds.get('host')}
                 />
                 <View style={{flexGrow: 1}}></View>
                 <TextInput
@@ -91,7 +91,7 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
                     autoCapitalize='none'
                     autoCorrect={false}
                     onChangeText={(httpUser) => this.props.updateCreds({httpUser})}
-                    value={this.props.creds.httpUser}
+                    value={this.props.creds.get('httpUser')}
                 />
                 <TextInput
                     style={style.bigInput}
@@ -100,7 +100,7 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
                     autoCapitalize='none'
                     autoCorrect={false}
                     onChangeText={(httpPassword) => this.props.updateCreds({httpPassword})}
-                    value={this.props.creds.httpPassword}
+                    value={this.props.creds.get('httpPassword')}
                 />
                 <View style={{flexGrow: 1}}></View>
                 <Button color={HIGHLIGHT}
@@ -115,9 +115,9 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
     }
 
     submit() {
-        const auth =  (this.props.creds.httpUser !== '' && this.props.creds.httpPassword !== '') ?
-                { username: this.props.creds.httpUser, password: this.props.creds.httpPassword } : undefined;
-        getContext().vaultService.login(this.props.creds, { auth });
+        const auth =  (this.props.creds.get('httpUser') !== '' && this.props.creds.get('httpPassword') !== '') ?
+                { username: this.props.creds.get('httpUser'), password: this.props.creds.get('httpPassword') } : undefined;
+        getContext().vaultService.login(this.props.creds.toJS(), { auth });
     }
 }
 

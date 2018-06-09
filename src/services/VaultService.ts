@@ -42,7 +42,7 @@ export class VaultService {
             this._vault = await vaultage.login(creds.host, creds.username, creds.password, httpParams);
             this.saveCredentials(creds, httpParams);
             this.store.dispatch(loginSuccessAction());
-            this.search(this.store.getState().vault.searchQuery);
+            this.search(this.store.getState().get('vault').get('searchQuery'));
         } catch (e) {
             this.store.dispatch(loginFailureAction(e.toString()));
         }
@@ -62,7 +62,7 @@ export class VaultService {
     async refresh() {
         try {
             await this.getVault().pull();
-            this.search(this.store.getState().vault.searchQuery);
+            this.search(this.store.getState().get('vault').get('searchQuery'));
         } catch (e) {
             if ((e as vaultage.VaultageError).code == vaultage.ERROR_CODE.BAD_CREDENTIALS) {
                 this.store.dispatch(logOutAction());

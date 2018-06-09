@@ -1,3 +1,4 @@
+import { tsMap } from './typesafe-immutable';
 import { AppActions } from './actions';
 import { State } from './state';
 
@@ -7,22 +8,23 @@ export function reducer(state: State, action: AppActions): State {
     }
     switch (action.type) {
         case 'loginStart':
-            return { ...state, loginLoading: true, error: undefined };
+            return state.set('loginLoading', true).set('error', undefined);
         case 'loginSuccess':
-            return { ...state, loginLoading: false, currentScreen: 'app'};
+            return state.set('loginLoading', false).set('currentScreen', 'app');
         case 'loginFailure':
-            return { ...state, loginLoading: false, error: action.payload.error };
+            return state.set('loginLoading', false).set('error', action.payload.error);
         case 'logout':
-            return { ...state, currentScreen: 'login' };
+            return state.set('currentScreen', 'login');
         case 'updateVault':
-            return { ...state, vault: action.payload };
+            return state.set('vault', tsMap(action.payload));
         case 'updateCreds':
-            return { ...state, creds: {
-                host: action.payload.host !== undefined ? action.payload.host : state.creds.host,
-                httpPassword: action.payload.httpPassword !== undefined ? action.payload.httpPassword : state.creds.httpPassword,
-                httpUser: action.payload.httpUser !== undefined ? action.payload.httpUser : state.creds.httpUser,
-                password: action.payload.password !== undefined ? action.payload.password : state.creds.password,
-                username: action.payload.username !== undefined ? action.payload.username : state.creds.username,
-            }};
+            const creds = state.get('creds');
+            return state.set('creds', tsMap({
+                host: action.payload.host !== undefined ? action.payload.host : creds.get('host'),
+                httpPassword: action.payload.httpPassword !== undefined ? action.payload.httpPassword : creds.get('httpPassword'),
+                httpUser: action.payload.httpUser !== undefined ? action.payload.httpUser : creds.get('httpUser'),
+                password: action.payload.password !== undefined ? action.payload.password : creds.get('password'),
+                username: action.payload.username !== undefined ? action.payload.username : creds.get('username'),
+            }));
     }
 }

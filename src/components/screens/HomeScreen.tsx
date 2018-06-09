@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PureComponent } from 'react';
 import { FlatList, Text, View, TextInput, Button, TouchableOpacity, Clipboard } from 'react-native';
 import { connect } from 'react-redux';
 import { State } from '../../redux/state';
@@ -8,10 +8,10 @@ import { getContext } from '../../context';
 import { IVaultDBEntry } from 'vaultage-client';
 
 
-class EntryItem extends Component<{
+class EntryItem extends PureComponent<{
     entry: IVaultDBEntry;
     passwordVisible: boolean;
-    onShowPassword: () => void;
+    onShowPassword: (entry: IVaultDBEntry) => void;
 }> {
 
     state = {
@@ -23,12 +23,16 @@ class EntryItem extends Component<{
             <View style={style.listItem}>
                 <Text style={style.listItemText}>{ this.getItemText() }</Text>
                 { (this.state.copyHintVisible) ? undefined : <Button
-                    onPress={this.props.onShowPassword}
+                    onPress={this._onShowPassword}
                     title={ this.props.passwordVisible ? 'Hide' : 'Show'} />
                 }
             </View>
         </TouchableOpacity>
     }
+
+    private _onShowPassword = () => {
+        this.props.onShowPassword(this.props.entry);
+    };
 
     private getItemText() {
         if (this.state.copyHintVisible) {
@@ -47,15 +51,15 @@ class EntryItem extends Component<{
         });
         setTimeout(() => {
             this.setState({ copyHintVisible: false });
-        }, 2000);
+        }, 1000);
     }
 }
 
 
 const mapStateToProps = (state: State) => {
     return {
-        query: state.vault.searchQuery,
-        entries: state.vault.entries
+        query: state.get('vault').get('searchQuery'),
+        entries: state.get('vault').get('entries')
     };
 };
 
@@ -65,7 +69,8 @@ const mapDispatchToProps = {
 class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps> {
 
     state = {
-        itemWithPasswordVisible: 'null'
+        itemWithPasswordVisible: 'null',
+        refreshing: false
     };
 
     render() {
@@ -102,16 +107,29 @@ class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof m
                 />
                 <FlatList
                     data={this.props.entries}
+                    refreshing={this.state.refreshing}
+                    onRefresh={() => {
+                        this.setState({ refreshing: true });
+                        getContext().vaultService.refresh().catch().then(() => {
+                            this.setState({
+                                refreshing: false
+                            });
+                        });
+                    }}
                     renderItem={({item}) => <EntryItem
                         entry={item}
                         passwordVisible={this.state.itemWithPasswordVisible === item.id}
-                        onShowPassword={() => this.setState({
-                                itemWithPasswordVisible: item.id
-                            })}/>}
+                        onShowPassword={this._onShowPassword}/>}
                 />
             </View>
         );
-    }    
+    }
+
+    private _onShowPassword = (item) => {
+        this.setState({
+            itemWithPasswordVisible: (this.state.itemWithPasswordVisible === item.id) ? 'null' : item.id
+        });
+    }
 }
 
 

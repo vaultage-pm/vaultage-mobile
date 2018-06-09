@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state: State) => {
     return {
-        screen: state.currentScreen
+        screen: state.get('currentScreen')
     };
 };
 
