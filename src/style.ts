@@ -1,18 +1,19 @@
 import { StyleSheet } from 'react-native';
 
+import color from 'color';
+
 export const HIGHLIGHT = '#0CCD58';
-export const PRIMARY = '#0B6A26';
-export const FOREGROUND = '#DFEFE2';
-export const BACKGROUND = '#000801';
+export const PRIMARY = '#29955f';
+export const FOREGROUND = '#fefffe';
+export const BACKGROUND = '#16464f';
+
+export const HINT = color(FOREGROUND).darken(0.4).desaturate(1).toString();
 
 export default StyleSheet.create({
     title: {
         fontSize: 50,
         color: FOREGROUND,
         fontWeight: 'bold'
-    },
-    inverse: {
-        backgroundColor: PRIMARY
     },
     page: {
         height: '100%',

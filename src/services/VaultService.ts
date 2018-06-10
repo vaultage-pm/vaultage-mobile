@@ -4,9 +4,6 @@ import * as vaultage from 'vaultage-client';
 
 import {
     AppActions,
-    loginFailureAction,
-    loginStartAction,
-    loginSuccessAction,
     logOutAction,
     updateVaultAction,
     updateCredentialsAction,
@@ -35,18 +32,8 @@ export class VaultService {
         this.restoreCredentials();
     }
 
-    async login(creds: Credentials, httpParams?: vaultage.IHttpParams) {
-        this.store.dispatch(loginStartAction());
-
-        try {
-            this._vault = await vaultage.login(creds.host, creds.username, creds.password, httpParams);
-            this.saveCredentials(creds, httpParams);
-            this.store.dispatch(loginSuccessAction());
-            this.search(this.store.getState().get('vault').get('searchQuery'));
-        } catch (e) {
-            this.store.dispatch(loginFailureAction(e.toString()));
-        }
-        
+    login(vault: vaultage.Vault): void {
+        this._vault = vault;
     }
 
     logout(): void {
@@ -62,7 +49,7 @@ export class VaultService {
     async refresh() {
         try {
             await this.getVault().pull();
-            this.search(this.store.getState().get('vault').get('searchQuery'));
+            this.search(this.store.getState().vault.searchQuery);
         } catch (e) {
             if ((e as vaultage.VaultageError).code == vaultage.ERROR_CODE.BAD_CREDENTIALS) {
                 this.store.dispatch(logOutAction());
@@ -79,16 +66,13 @@ export class VaultService {
         return this._vault;
     }
 
-    private saveCredentials(creds: Credentials, httpParams?: IHttpParams): Promise<void> {
-        const httpCreds = httpParams && httpParams.auth ?
-            httpParams.auth :
-            { username: undefined, password: undefined };
+    saveCredentials(creds: Credentials, httpCreds?: IHttpParams['auth']): Promise<void> {
     
         const toSave: SavedCredentials = {
             host: creds.host,
             username: creds.username,
-            httpPassword: httpCreds.password,
-            httpUser: httpCreds.username
+            httpPassword: httpCreds && httpCreds.password,
+            httpUser: httpCreds && httpCreds.username
         }
 
         return AsyncStorage.setItem('vaultage.connection-settings', JSON.stringify(toSave));

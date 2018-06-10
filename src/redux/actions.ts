@@ -33,11 +33,15 @@ export function logOutAction() {
 }
 
 export function updateVaultAction(searchQuery: string, entries: IVaultDBEntry[]) {
-    return baseAction('updateVault', {searchQuery, entries});
+    return baseAction('updateVaultEntries', {searchQuery, entries});
 }
 
 export function updateCredentialsAction(creds: Credentials) {
     return baseAction('updateCreds', creds);
+}
+
+export function selectVaultEntryAction(entry: IVaultDBEntry) {
+    return baseAction('selectEntry', entry);
 }
 
 /**
@@ -49,4 +53,5 @@ export type AppActions =
         ReturnType<typeof loginFailureAction> |
         ReturnType<typeof logOutAction> |
         ReturnType<typeof updateVaultAction> |
-        ReturnType<typeof updateCredentialsAction> ;
+        ReturnType<typeof updateCredentialsAction> |
+        ReturnType<typeof selectVaultEntryAction>;

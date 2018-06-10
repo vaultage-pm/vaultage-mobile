@@ -1,4 +1,3 @@
-import { tsMap } from './typesafe-immutable';
 import { AppActions } from './actions';
 import { State } from './state';
 
@@ -8,23 +7,40 @@ export function reducer(state: State, action: AppActions): State {
     }
     switch (action.type) {
         case 'loginStart':
-            return state.set('loginLoading', true).set('error', undefined);
+            return { ...state, loginLoading: true, error: undefined };
         case 'loginSuccess':
-            return state.set('loginLoading', false).set('currentScreen', 'app');
+            return { ...state,
+                'loginLoading': false,
+                'currentScreen': 'app',
+                creds: { ...state.creds,
+                    password: '' // Reset the password field upon successful login
+                }
+            };
         case 'loginFailure':
-            return state.set('loginLoading', false).set('error', action.payload.error);
+            return { ...state, 'loginLoading': false};
         case 'logout':
-            return state.set('currentScreen', 'login');
-        case 'updateVault':
-            return state.set('vault', tsMap(action.payload));
+            return { ...state, 'currentScreen': 'login', vault: {
+                entries: [],
+                searchQuery: '',
+                selectedEntry: null
+            }};
+        case 'updateVaultEntries':
+            return { ...state, 'vault': {...state.vault, ...action.payload} };
         case 'updateCreds':
-            const creds = state.get('creds');
-            return state.set('creds', tsMap({
-                host: action.payload.host !== undefined ? action.payload.host : creds.get('host'),
-                httpPassword: action.payload.httpPassword !== undefined ? action.payload.httpPassword : creds.get('httpPassword'),
-                httpUser: action.payload.httpUser !== undefined ? action.payload.httpUser : creds.get('httpUser'),
-                password: action.payload.password !== undefined ? action.payload.password : creds.get('password'),
-                username: action.payload.username !== undefined ? action.payload.username : creds.get('username'),
-            }));
+            const creds = state.creds;
+            return { ...state, 'creds': {
+                host: action.payload.host !== undefined ? action.payload.host : creds.host,
+                httpPassword: action.payload.httpPassword !== undefined ? action.payload.httpPassword : creds.httpPassword,
+                httpUser: action.payload.httpUser !== undefined ? action.payload.httpUser : creds.httpUser,
+                password: action.payload.password !== undefined ? action.payload.password : creds.password,
+                username: action.payload.username !== undefined ? action.payload.username : creds.username,
+            }};
+        case 'selectEntry':
+            return {...state,
+                vault: {...state.vault, 
+                    selectedEntry: action.payload
+                }
+            };
+            
     }
 }

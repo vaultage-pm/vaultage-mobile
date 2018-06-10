@@ -1,136 +1,171 @@
+import debounce from '../../utis/debounce';
+import { selectVaultEntryAction, updateVaultAction } from '../../redux/actions';
+import {
+    ActionSheet,
+    Button,
+    Container,
+    Content,
+    Header,
+    Icon,
+    Input,
+    Item,
+    Left,
+    List,
+    ListItem,
+    Right,
+    Text,
+} from 'native-base';
 import React, { Component, PureComponent } from 'react';
-import { FlatList, Text, View, TextInput, Button, TouchableOpacity, Clipboard } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
+import { NavigationInjectedProps } from 'react-navigation';
 import { connect } from 'react-redux';
-import { State } from '../../redux/state';
-
-import style from '../../style';
-import { getContext } from '../../context';
 import { IVaultDBEntry } from 'vaultage-client';
 
+import { getContext } from '../../context';
+import { State } from '../../redux/state';
+import { HINT } from '../../style';
 
-class EntryItem extends PureComponent<{
-    entry: IVaultDBEntry;
-    passwordVisible: boolean;
-    onShowPassword: (entry: IVaultDBEntry) => void;
-}> {
-
-    state = {
-        copyHintVisible: false
-    };
-
-    render() {
-        return <TouchableOpacity onPress={() => this.copyToClipboard()}>
-            <View style={style.listItem}>
-                <Text style={style.listItemText}>{ this.getItemText() }</Text>
-                { (this.state.copyHintVisible) ? undefined : <Button
-                    onPress={this._onShowPassword}
-                    title={ this.props.passwordVisible ? 'Hide' : 'Show'} />
-                }
-            </View>
-        </TouchableOpacity>
-    }
-
-    private _onShowPassword = () => {
-        this.props.onShowPassword(this.props.entry);
-    };
-
-    private getItemText() {
-        if (this.state.copyHintVisible) {
-            return 'Copied!';
-        }
-        if (this.props.passwordVisible) {
-            return this.props.entry.password;
-        }
-        return this.props.entry.title;
-    }
-
-    private copyToClipboard() {
-        Clipboard.setString(this.props.entry.password);
-        this.setState({
-            copyHintVisible: true
-        });
-        setTimeout(() => {
-            this.setState({ copyHintVisible: false });
-        }, 1000);
-    }
-}
-
+const DEBOUNCE_INTERVAL_MS = 500;
 
 const mapStateToProps = (state: State) => {
     return {
-        query: state.get('vault').get('searchQuery'),
-        entries: state.get('vault').get('entries')
+        query: state.vault.searchQuery,
+        entries: state.vault.entries
     };
 };
 
 const mapDispatchToProps = {
+    selectVaultEntryAction,
+    updateVaultAction
 };
 
-class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps> {
+const style = StyleSheet.create({
+    hintContainer: {
+        flex: 1,
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        height: '100%'
+    },
+    hintText: {
+        color: HINT
+    },
+    username: {
+        color: HINT,
+        maxWidth: '50%',
+    },
+    title: {
+        maxWidth: '50%'
+    }
+});
 
+class EntryItem extends PureComponent<{
+    entry: IVaultDBEntry;
+    onSelect: (entry: IVaultDBEntry) => void;
+}> {
+    render() {
+        return <ListItem button onPress={this._onSelect}>
+            <Left>
+                <Text numberOfLines={1} style={style.username}>{this.props.entry.login}</Text>
+                <Text style={style.hintText}>@</Text>
+                <Text numberOfLines={1} style={style.title}>{this.props.entry.title}</Text>
+            </Left>
+            <Right>
+                <Icon name="arrow-forward" />
+            </Right>
+        </ListItem>;
+    }
+
+    private _onSelect = () => {
+        this.props.onSelect(this.props.entry);
+    }
+};
+
+class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps & NavigationInjectedProps>
+{
     state = {
-        itemWithPasswordVisible: 'null',
         refreshing: false
     };
 
     render() {
-        return (
-            <View style={[style.page, {
-                flex: 1,
-                flexDirection: 'column',
-                alignItems: 'stretch',
-                alignContent: 'center',
-                justifyContent: 'flex-start'
-            }]}>
-                <View style={{height: 40}}>
-                    <View  style={{
-                        flex: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        alignContent: 'center',
-                        justifyContent: 'space-between'
-                    }}>
-                        <Button 
-                            onPress={() => getContext().vaultService.refresh()}
-                            title='Refresh' />
-                        <Button 
-                            onPress={() => getContext().vaultService.logout()}
-                            title='Logout' />
-                    </View>
-                </View>
-                <TextInput
-                    style={style.bigInput}
-                    placeholder='Search...'
-                    autoCapitalize='none'
-                    onChangeText={(query) => getContext().vaultService.search(query)}
-                    value={this.props.query}
-                />
-                <FlatList
-                    data={this.props.entries}
-                    refreshing={this.state.refreshing}
-                    onRefresh={() => {
-                        this.setState({ refreshing: true });
-                        getContext().vaultService.refresh().catch().then(() => {
-                            this.setState({
-                                refreshing: false
-                            });
-                        });
-                    }}
-                    renderItem={({item}) => <EntryItem
-                        entry={item}
-                        passwordVisible={this.state.itemWithPasswordVisible === item.id}
-                        onShowPassword={this._onShowPassword}/>}
-                />
-            </View>
+        return <Container>
+            <Header searchBar rounded>
+                <Item>
+                    <Icon active name="search" />
+                    <Input placeholder="Search" 
+                        onChangeText={this._onSearchChange}/>
+                </Item>
+                <Button onPress={this._openMenu} transparent>
+                    <Icon name="menu" />
+                </Button>
+            </Header>
+            <Content>
+                { (this.props.entries.length === 0) ?
+                        this.renderPlaceholder() :
+                        this.renderList()}
+            </Content>
+        </Container>;
+    }
+
+    private renderList() {
+        return <List   dataArray={this.props.entries}
+                refreshControl={<RefreshControl
+                        refreshing={this.state.refreshing}
+                        onRefresh={this._refresh} />}
+                renderRow={(item: IVaultDBEntry) =>
+                        <EntryItem entry={item} onSelect={this._onSelectItem} /> }>
+        </List>;
+    }
+
+    private renderPlaceholder() {
+        return <View style={style.hintContainer}>
+            <Text style={style.hintText}>Type something in the search bar to get started.</Text>
+        </View>;
+    }
+
+    private _refresh = () => {
+        this.setState({ refreshing: true });
+        getContext().vaultService.refresh().catch().then(() => {
+            this.setState({
+                refreshing: false
+            });
+        });
+    }
+
+    private _openMenu = () => {
+        ActionSheet.show(
+            {
+              options: ['Refresh', 'Log out', 'Close'],
+              cancelButtonIndex: 2,
+              title: "Menu"
+            },
+            buttonIndex => {
+                switch (buttonIndex) {
+                    case 0:
+                        getContext().vaultService.refresh();
+                        break;
+                    case 1:
+                        getContext().vaultService.logout();
+                        this.props.navigation.goBack();
+                        break;   
+                }
+            }
         );
     }
 
-    private _onShowPassword = (item) => {
-        this.setState({
-            itemWithPasswordVisible: (this.state.itemWithPasswordVisible === item.id) ? 'null' : item.id
-        });
-    }
+    private _onSelectItem = (item: IVaultDBEntry) => {
+        this.props.selectVaultEntryAction(item);
+        this.props.navigation.navigate('Entry');
+    };
+
+    private _onSearchChange = debounce(DEBOUNCE_INTERVAL_MS, (text: string) => {
+        if (text.length > 2) {
+            getContext().vaultService.search(text);
+        } else {
+            this.props.updateVaultAction(text, []);
+        }
+    });
 }
+
 
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

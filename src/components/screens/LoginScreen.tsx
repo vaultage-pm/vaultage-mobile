@@ -1,123 +1,210 @@
 import color from 'color';
+import { Button, Container, Form, Icon, Input, Item, Text, Toast } from 'native-base';
 import React, { Component } from 'react';
-import { ActivityIndicator, Button, Modal, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ImageBackground, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { NavigationInjectedProps } from 'react-navigation';
 import { connect } from 'react-redux';
+import * as vaultage from 'vaultage-client';
 
 import { getContext } from '../../context';
-import { updateCredentialsAction } from '../../redux/actions';
+import { loginFailureAction, loginStartAction, loginSuccessAction, updateCredentialsAction } from '../../redux/actions';
 import { State } from '../../redux/state';
-import style, { HIGHLIGHT, PRIMARY } from '../../style';
+import style, { BACKGROUND, FOREGROUND, HINT } from '../../style';
 
+const background = require('../../../assets/background.png');
+const logoImage = require('../../../assets/logo_text_color_downsampled.png');
 
 const mapStateToProps = (state: State) => {
     return {
-        loading: state.get('loginLoading'),
-        error: state.get('error'),
-        creds: state.get('creds')
+        loading: state.loginLoading,
+        error: state.error,
+        creds: state.creds
     };
 };
 
 const mapDispatchToProps = {
-    updateCreds: updateCredentialsAction
+    updateCredentialsAction,
+    loginStartAction,
+    loginFailureAction,
+    loginSuccessAction
 };
 
-class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps> {
+const styles = StyleSheet.create({
+    logo: {
+        width: 350,
+        height: 100
+    },
+    imageContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%'
+    },
+    advancedCollapse: {
+        flex: 1,
+        
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    advancedCollapseContainer: {
+        height: 40,
+        paddingLeft: 10,
+        paddingRight: 10
+    },
+    collapseText: {
+        marginLeft: 5,
+        color: FOREGROUND
+    },
+    collapseCaret: {
+        marginRight: 2,
+        color: FOREGROUND
+    },
+    basicForm: {
+       
+    },
+    page: {
+        backgroundColor: BACKGROUND,
+        flex: 1,
+        justifyContent: 'flex-start',
+        alignItems: 'stretch'
+    },
+    input: {
+        color: FOREGROUND
+    },
+    spacer: {
+        flexGrow: 1
+    }
+});
+
+class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps & NavigationInjectedProps> {
+
+    state = {
+        advancedExpanded: false
+    };
 
     render() {
         return (
-          <View style={[style.page, style.inverse]}>
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={this.props.loading}
-                onRequestClose={() => {
-                }}>
-                <View style={[style.page, style.inverse, {
-                    backgroundColor: color(PRIMARY).desaturate(0.1).darken(0.5).alpha(0.6).toString()
-                    }]}>
-                    <View style={{
-                        flex: 1,
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        alignContent: 'center',
-                        justifyContent: 'center'
+            <Container style={styles.page}>
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={this.props.loading}
+                    onRequestClose={() => {
                     }}>
-                        <ActivityIndicator size="large" />
+                    <View style={[style.page, {
+                        backgroundColor: color(BACKGROUND).desaturate(0.1).darken(0.5).alpha(0.7).toString()
+                        }]}>
+                        <View style={{
+                            flex: 1,
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            alignContent: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <ActivityIndicator size="large" />
+                        </View>
                     </View>
+                </Modal>
+                <ImageBackground source={background} style={styles.imageContainer}></ImageBackground>
+                <View style={styles.spacer}></View>
+                <View>
+                    <ImageBackground source={logoImage} style={styles.logo} />
                 </View>
-            </Modal>
-            <View style={{
-                flex: 1,
-                flexDirection: 'column',
-                alignItems: 'center',
-                alignContent: 'center',
-                justifyContent: 'center'
-            }}>
-                <View style={{flexGrow: 4}}></View>
-                <Text style={[style.title]}>
-                    Vaultage
-                </Text>
-                <View style={{flexGrow: 2}}></View>
-                <TextInput
-                    style={style.bigInput}
-                    autoCapitalize='none'
-                    placeholder='username'
-                    autoFocus={true}
-                    autoCorrect={false}
-                    onChangeText={(username) => this.props.updateCreds({username})}
-                    value={this.props.creds.get('username')}
-                />
-                <TextInput  
-                    style={style.bigInput}
-                    secureTextEntry={true}
-                    placeholder='password'
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    onChangeText={(password) => this.props.updateCreds({password})}
-                    value={this.props.creds.get('password')}
-                />
-                <TextInput
-                    style={style.bigInput}
-                    placeholder='host'
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    onChangeText={(host) => this.props.updateCreds({host})}
-                    value={this.props.creds.get('host')}
-                />
-                <View style={{flexGrow: 1}}></View>
-                <TextInput
-                    style={style.bigInput}
-                    placeholder='(optional) HTTP user'
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    onChangeText={(httpUser) => this.props.updateCreds({httpUser})}
-                    value={this.props.creds.get('httpUser')}
-                />
-                <TextInput
-                    style={style.bigInput}
-                    secureTextEntry={true}
-                    placeholder='(optional) HTTP password'
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    onChangeText={(httpPassword) => this.props.updateCreds({httpPassword})}
-                    value={this.props.creds.get('httpPassword')}
-                />
-                <View style={{flexGrow: 1}}></View>
-                <Button color={HIGHLIGHT}
-                    onPress={() => this.submit()}
-                    title='Login'
-                    disabled={this.props.loading}></Button>
-                { this.props.error != null ? <Text style={style.error}>{this.props.error}</Text> : undefined }
-                <View style={{flexGrow: 7}}></View>
-            </View>
-          </View>
+                <View style={styles.spacer}></View>
+                <Form style={styles.basicForm}>
+                    <Item>
+                        <Input style={styles.input}
+                                placeholderTextColor={HINT}
+                                placeholder="Username"
+                                autoCapitalize='none'
+                                onChangeText={(username) => this.props.updateCredentialsAction({username})}
+                                value={this.props.creds.username}/>
+                    </Item>
+                    <Item>
+                        <Input style={styles.input}
+                                placeholderTextColor={HINT}
+                                placeholder="Password"
+                                autoCapitalize='none'
+                                onChangeText={(password) => this.props.updateCredentialsAction({password})}
+                                value={this.props.creds.password}
+                                secureTextEntry />
+                    </Item>
+                    <Item>
+                        <Input style={styles.input}
+                                placeholderTextColor={HINT}
+                                placeholder="https://your-hostname"
+                                autoCapitalize='none'
+                                onChangeText={(host) => this.props.updateCredentialsAction({host})}
+                                value={this.props.creds.host} />
+                    </Item>
+                </Form>
+                <View style={styles.spacer}></View>
+                <View style={styles.advancedCollapseContainer}>
+                    <TouchableOpacity style={styles.advancedCollapse} onPressIn={() => this.setState({advancedExpanded: !this.state.advancedExpanded})}>
+                        <Text style={styles.collapseText}>Advanced settings</Text>
+                        <Icon name={this.state.advancedExpanded ? 'arrow-dropdown' : 'arrow-dropright'} style={styles.collapseCaret}/>
+                    </TouchableOpacity>
+                </View>
+                { this.state.advancedExpanded ? 
+                <Form>
+                    <Item>
+                        <Input style={styles.input}
+                                placeholderTextColor={HINT}
+                                placeholder="HTTP user"
+                                autoCapitalize='none'
+                                onChangeText={(httpUser) => this.props.updateCredentialsAction({httpUser})}
+                                value={this.props.creds.httpUser}/>
+                    </Item>
+                    <Item>
+                        <Input style={styles.input}
+                                placeholderTextColor={HINT}
+                                placeholder="HTTP password"
+                                autoCapitalize='none'
+                                onChangeText={(httpPassword) => this.props.updateCredentialsAction({httpPassword})}
+                                value={this.props.creds.httpPassword}
+                                secureTextEntry />
+                    </Item>
+                </Form> : undefined
+                }
+                <View style={styles.spacer}></View>
+                <Button block
+                        style={{ margin: 15, marginTop: 50 }}
+                        disabled={this.props.loading}
+                        onPress={() => this.submit()}>
+                    <Text>Sign In</Text>
+                </Button>
+            </Container>
         );
     }
 
-    submit() {
-        const auth =  (this.props.creds.get('httpUser') !== '' && this.props.creds.get('httpPassword') !== '') ?
-                { username: this.props.creds.get('httpUser'), password: this.props.creds.get('httpPassword') } : undefined;
-        getContext().vaultService.login(this.props.creds.toJS(), { auth });
+    async submit() {
+        const auth =  (this.props.creds.httpUser !== '' && this.props.creds.httpPassword !== '') ?
+                { username: this.props.creds.httpUser, password: this.props.creds.httpPassword } : undefined;
+
+        this.props.loginStartAction();
+
+        try {
+            const vault = await vaultage.login(
+                    this.props.creds.host,
+                    this.props.creds.username,
+                    this.props.creds.password,
+                    { auth });
+
+            const vaultService = getContext().vaultService;
+            
+            vaultService.login(vault);
+            await vaultService.saveCredentials(this.props.creds, auth);
+
+            this.props.loginSuccessAction();
+            this.props.navigation.navigate('Home');
+        } catch (e) {
+            this.props.loginFailureAction(e.toString());
+            Toast.show({
+                text: e.toString(),
+                buttonText: 'Dismiss'
+            });
+        }
     }
 }
 
