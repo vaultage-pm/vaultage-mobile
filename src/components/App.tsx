@@ -1,3 +1,4 @@
+import EditEntryScreen from './screens/EditEntryScreen';
 import React from 'react';
 import { Root } from 'native-base';
 import { Provider } from 'react-redux';
@@ -11,7 +12,8 @@ import EntryDetailScreen from './screens/EntryDetailScreen';
 const Navigation = StackNavigator({
     Login: LoginScreen,
     Home: HomeScreen,
-    Entry: EntryDetailScreen
+    Entry: EntryDetailScreen,
+    EditEntry: EditEntryScreen
 }, {
   initialRouteName: "Login",
   headerMode: "none"

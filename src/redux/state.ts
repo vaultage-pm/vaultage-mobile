@@ -1,16 +1,23 @@
 import { IVaultDBEntry } from "vaultage-client";
 
-export type Screen = 'login' | 'app';
-
 export function initialState() {
     return {
-        currentScreen: 'login' as Screen,
         loginLoading: false,
         error: undefined as string | undefined,
         vault: {
             searchQuery: '',
-            entries: [] as IVaultDBEntry[],
+            version: 0,
             selectedEntry: null as IVaultDBEntry | null
+        },
+        /**
+         * The temporary entry which is being edited.
+         */
+        pendingEntry: {
+            id: '' as string | null,
+            title: '',
+            password: '',
+            login: '',
+            url: ''
         },
         creds: {
             username: '',

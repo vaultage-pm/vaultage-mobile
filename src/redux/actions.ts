@@ -1,4 +1,4 @@
-import { IVaultDBEntry } from "vaultage-client";
+import { IVaultDBEntry, IVaultDBEntryAttrs } from "vaultage-client";
 
 
 interface Credentials {
@@ -32,8 +32,8 @@ export function logOutAction() {
     return baseAction('logout', null);
 }
 
-export function updateVaultAction(searchQuery: string, entries: IVaultDBEntry[]) {
-    return baseAction('updateVaultEntries', {searchQuery, entries});
+export function vaultChangeAction() {
+    return baseAction('vaultChange', null);
 }
 
 export function updateCredentialsAction(creds: Credentials) {
@@ -44,14 +44,29 @@ export function selectVaultEntryAction(entry: IVaultDBEntry) {
     return baseAction('selectEntry', entry);
 }
 
+export function beginEntryEditAction(entry: IVaultDBEntryAttrs & { id: string | null}) {
+    return baseAction('beginEdit', entry);
+}
+
+export function updatePendingEntryAction(entry: Partial<IVaultDBEntryAttrs>) {
+    return baseAction('updatePending', entry);
+}
+
+export function entrySavedAction(entry: IVaultDBEntry) {
+    return baseAction('entrySaved', entry);
+}
+
 /**
  * Join here all possible actions
  */
 export type AppActions =
         ReturnType<typeof loginStartAction> |
+        ReturnType<typeof entrySavedAction> |
+        ReturnType<typeof updatePendingEntryAction> |
+        ReturnType<typeof beginEntryEditAction> |
         ReturnType<typeof loginSuccessAction> |
         ReturnType<typeof loginFailureAction> |
         ReturnType<typeof logOutAction> |
-        ReturnType<typeof updateVaultAction> |
+        ReturnType<typeof vaultChangeAction> |
         ReturnType<typeof updateCredentialsAction> |
         ReturnType<typeof selectVaultEntryAction>;

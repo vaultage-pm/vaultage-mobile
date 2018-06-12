@@ -1,10 +1,9 @@
-import debounce from '../../utis/debounce';
-import { selectVaultEntryAction, updateVaultAction } from '../../redux/actions';
 import {
     ActionSheet,
     Button,
     Container,
     Content,
+    Fab,
     Header,
     Icon,
     Input,
@@ -22,21 +21,19 @@ import { connect } from 'react-redux';
 import { IVaultDBEntry } from 'vaultage-client';
 
 import { getContext } from '../../context';
+import { beginEntryEditAction, selectVaultEntryAction } from '../../redux/actions';
 import { State } from '../../redux/state';
-import { HINT } from '../../style';
-
-const DEBOUNCE_INTERVAL_MS = 500;
+import { HINT, PRIMARY } from '../../style';
 
 const mapStateToProps = (state: State) => {
     return {
-        query: state.vault.searchQuery,
-        entries: state.vault.entries
+        vaultVersion: state.vault.version
     };
 };
 
 const mapDispatchToProps = {
     selectVaultEntryAction,
-    updateVaultAction
+    beginEntryEditAction
 };
 
 const style = StyleSheet.create({
@@ -83,31 +80,60 @@ class EntryItem extends PureComponent<{
 class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps & NavigationInjectedProps>
 {
     state = {
-        refreshing: false
+        refreshing: false,
+        query: ''
     };
 
     render() {
+        const entries = this.getEntries();
         return <Container>
             <Header searchBar rounded>
                 <Item>
                     <Icon active name="search" />
                     <Input placeholder="Search" 
-                        onChangeText={this._onSearchChange}/>
+                        onChangeText={(query) => this.setState({query})}
+                        autoCorrect={false} />
                 </Item>
                 <Button onPress={this._openMenu} transparent>
                     <Icon name="menu" />
                 </Button>
             </Header>
             <Content>
-                { (this.props.entries.length === 0) ?
+                { (entries.length === 0) ?
                         this.renderPlaceholder() :
-                        this.renderList()}
+                        this.renderList(entries)}
             </Content>
+            <Fab
+                    containerStyle={{}}
+                    style={{ backgroundColor: PRIMARY }}
+                    position="bottomRight"
+                    onPress={this._onRequestCreateEntry}>
+                <Icon name="md-add" />
+            </Fab>
         </Container>;
     }
 
-    private renderList() {
-        return <List   dataArray={this.props.entries}
+    private _onRequestCreateEntry = () => {
+        this.props.beginEntryEditAction({
+            id: null,
+            title: '',
+            login: '',
+            password: '',
+            url: ''
+        });
+        this.props.navigation.navigate('EditEntry');
+    };
+
+    private getEntries() {
+        if (this.state.query.length > 2) {
+            return getContext().vaultService.access(this.props.vaultVersion).search(this.state.query);
+        } else {
+            return [];
+        }
+    }
+
+    private renderList(entries: IVaultDBEntry[]) {
+        return <List   dataArray={entries}
                 refreshControl={<RefreshControl
                         refreshing={this.state.refreshing}
                         onRefresh={this._refresh} />}
@@ -144,8 +170,8 @@ class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof m
                         getContext().vaultService.refresh();
                         break;
                     case 1:
-                        getContext().vaultService.logout();
                         this.props.navigation.goBack();
+                        getContext().vaultService.logout();
                         break;   
                 }
             }
@@ -156,14 +182,6 @@ class HomeScreen extends Component<ReturnType<typeof mapStateToProps> & typeof m
         this.props.selectVaultEntryAction(item);
         this.props.navigation.navigate('Entry');
     };
-
-    private _onSearchChange = debounce(DEBOUNCE_INTERVAL_MS, (text: string) => {
-        if (text.length > 2) {
-            getContext().vaultService.search(text);
-        } else {
-            this.props.updateVaultAction(text, []);
-        }
-    });
 }
 
 

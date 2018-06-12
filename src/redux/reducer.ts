@@ -11,7 +11,6 @@ export function reducer(state: State, action: AppActions): State {
         case 'loginSuccess':
             return { ...state,
                 'loginLoading': false,
-                'currentScreen': 'app',
                 creds: { ...state.creds,
                     password: '' // Reset the password field upon successful login
                 }
@@ -19,13 +18,17 @@ export function reducer(state: State, action: AppActions): State {
         case 'loginFailure':
             return { ...state, 'loginLoading': false};
         case 'logout':
-            return { ...state, 'currentScreen': 'login', vault: {
-                entries: [],
+            return { ...state, vault: {
                 searchQuery: '',
+                version: 0,
                 selectedEntry: null
             }};
-        case 'updateVaultEntries':
-            return { ...state, 'vault': {...state.vault, ...action.payload} };
+        case 'vaultChange':
+            return { ...state,
+                    vault: {...state.vault,
+                        version: state.vault.version + 1
+                }
+            };
         case 'updateCreds':
             const creds = state.creds;
             return { ...state, 'creds': {
@@ -41,6 +44,29 @@ export function reducer(state: State, action: AppActions): State {
                     selectedEntry: action.payload
                 }
             };
-            
+        case 'beginEdit':
+            return {...state,
+                pendingEntry: action.payload
+            };
+        case 'updatePending':
+            return {...state,
+                pendingEntry: {
+                    ...state.pendingEntry,
+                    ...action.payload
+                }
+            };
+        case 'entrySaved':
+            return {...state,
+                pendingEntry: {
+                    id: null,
+                    login: '',
+                    password: '',
+                    title: '',
+                    url: ''
+                },
+                vault: {...state.vault,
+                    selectedEntry: action.payload
+                }
+            };
     }
 }

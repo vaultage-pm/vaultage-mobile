@@ -1,7 +1,6 @@
-import color from 'color';
 import { Button, Container, Form, Icon, Input, Item, Text, Toast } from 'native-base';
 import React, { Component } from 'react';
-import { ActivityIndicator, ImageBackground, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { NavigationInjectedProps } from 'react-navigation';
 import { connect } from 'react-redux';
 import * as vaultage from 'vaultage-client';
@@ -9,7 +8,8 @@ import * as vaultage from 'vaultage-client';
 import { getContext } from '../../context';
 import { loginFailureAction, loginStartAction, loginSuccessAction, updateCredentialsAction } from '../../redux/actions';
 import { State } from '../../redux/state';
-import style, { BACKGROUND, FOREGROUND, HINT } from '../../style';
+import { BACKGROUND, FOREGROUND, HINT } from '../../style';
+import LoadingModal from '../widgets/LoadingModal';
 
 const background = require('../../../assets/background.png');
 const logoImage = require('../../../assets/logo_text_color_downsampled.png');
@@ -86,26 +86,7 @@ class LoginScreen extends Component<ReturnType<typeof mapStateToProps> & typeof 
     render() {
         return (
             <Container style={styles.page}>
-                <Modal
-                    animationType="fade"
-                    transparent={true}
-                    visible={this.props.loading}
-                    onRequestClose={() => {
-                    }}>
-                    <View style={[style.page, {
-                        backgroundColor: color(BACKGROUND).desaturate(0.1).darken(0.5).alpha(0.7).toString()
-                        }]}>
-                        <View style={{
-                            flex: 1,
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            alignContent: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <ActivityIndicator size="large" />
-                        </View>
-                    </View>
-                </Modal>
+                <LoadingModal loading={this.props.loading} />
                 <ImageBackground source={background} style={styles.imageContainer}></ImageBackground>
                 <View style={styles.spacer}></View>
                 <View>
