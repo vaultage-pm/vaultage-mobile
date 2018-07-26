@@ -5,8 +5,7 @@
       "root": ["./src"],
       "cwd": "babelrc",
       "alias": {
-        "crypto": "./crypto/index.js",
-        "underscore": "lodash"
+        "crypto": "./dist/crypto/index.js"
       }
     }]
   ]

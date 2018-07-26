@@ -1,4 +1,4 @@
-package com.vaultage;
+package com.vaultage.crypto;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
@@ -21,7 +21,7 @@ public class CryptoPackage implements ReactPackage {
             ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
-        modules.add(new CryptoModule(reactContext));
+        modules.add(new CryptoModule(reactContext, new Utils()));
 
         return modules;
     }
